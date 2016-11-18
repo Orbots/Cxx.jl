@@ -7,6 +7,11 @@ DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_COMPILER=$(GCC_PACKAGE_ROOT)/bin/g++
 DD_PKG_CXX_CMAKE_ARGS += -DGCC_INSTALL_PREFIX=$(GCC_PACKAGE_ROOT)
 DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_LINK_FLAGS="-L$(GCC_PACKAGE_ROOT)/lib64 -Wl,-rpath,$(GCC_PACKAGE_ROOT)/lib64"
 
+# still not using proper libs for gcc version.  let's throw everything we can at it...
+DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_PREFIX_PATH=$(GCC_PACKAGE_ROOT)
+DD_BUILD_ENV += LD_LIBRARY_PATH=$(GCC_PACKAGE_ROOT)/lib64:$(GCC_PACKAGE_ROOT)/lib:$(LD_LIBRARY_PATH)
+
+
 ifeq ($(LLVM_VER),)
 BUILDROOT=$(JULIA_BIN)/../..
 include $(JULIA_SRC)/deps/Versions.make
@@ -82,7 +87,7 @@ src/llvm-$(LLVM_VER): $(LLVM_SRC_TAR)
 build/llvm-$(LLVM_VER)/Makefile: src/llvm-$(LLVM_VER) $(LLVM_PATCH_LIST)
 	mkdir -p $(dir $@)
 	cd $(dir $@) && \
-		cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) -DLLVM_TARGETS_TO_BUILD="X86" \
+		env $(DD_BUILD_ENV) cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) -DLLVM_TARGETS_TO_BUILD="X86" \
 		 	-DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release \
 			-DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_THREADS=OFF \
 			-DCMAKE_CXX_COMPILER_ARG1="$(CXX_ABI_SETTING)" \
@@ -108,7 +113,7 @@ src/clang-$(LLVM_VER): $(LLVM_CLANG_TAR)
 build/clang-$(LLVM_VER)/Makefile: src/clang-$(LLVM_VER) $(CLANG_CMAKE_DEP)
 	mkdir -p $(dir $@)
 	cd $(dir $@) && \
-		cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) \
+		env $(DD_BUILD_ENV) cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) \
 			-DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release \
 			-DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_THREADS=OFF \
                         -DCMAKE_CXX_COMPILER_ARG1="$(CXX_ABI_SETTING)" \
