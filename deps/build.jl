@@ -52,6 +52,9 @@ PYTHON_PACKAGE_ROOT = string(ENV["DD_TOOLS_ROOT"],"/", ENV["DD_OS"], "/package/p
 ENV["PATH"] = string( CMAKE_PACKAGE_ROOT,"/bin:", PYTHON_PACKAGE_ROOT,"/bin:",ENV["PATH"])
 # GCC_INSTALL_PREFIX doesn't seem to be working, so we will resort to this.  
 # note, I think we'll need to set this whenever we want to use Cxx package
-ENV["LD_LIBRARY_PATH"] = string( GCC_PACKAGE_ROOT, "/lib:", GCC_PACKAGE_ROOT, "/lib64:", ENV["LD_LIBRARY_PATH"])
-
+if haskey( ENV, LD_LIBRARY_PATH )
+    ENV["LD_LIBRARY_PATH"] = string( GCC_PACKAGE_ROOT, "/lib:", GCC_PACKAGE_ROOT, "/lib64:", ENV["LD_LIBRARY_PATH"])
+else
+    ENV["LD_LIBRARY_PATH"] = string( GCC_PACKAGE_ROOT, "/lib:", GCC_PACKAGE_ROOT, "/lib64")
+end
 run(`make -j$(Sys.CPU_CORES) -f BuildBootstrap.Makefile BASE_JULIA_BIN=$BASE_JULIA_BIN BASE_JULIA_SRC=$BASE_JULIA_SRC GCC_PACKAGE_ROOT=$GCC_PACKAGE_ROOT`)
