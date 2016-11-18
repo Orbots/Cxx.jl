@@ -7,6 +7,11 @@ DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_COMPILER=$(GCC_PACKAGE_ROOT)/bin/g++
 DD_PKG_CXX_CMAKE_ARGS += -DGCC_INSTALL_PREFIX=$(GCC_PACKAGE_ROOT)
 DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_LINK_FLAGS="-L$(GCC_PACKAGE_ROOT)/lib64 -Wl,-rpath,$(GCC_PACKAGE_ROOT)/lib64"
 
+# DD: set up correct gcc stuff for make
+CXX = $(GCC_PACKAGE_ROOT)/bin/g++
+CC = $(GCC_PACKAGE_ROOT)/bin/gcc
+DD_CPPFLAGS = "-L$(GCC_PACKAGE_ROOT)/lib64 -Wl,-rpath,$(GCC_PACKAGE_ROOT)/lib64"
+
 # still not using proper libs for gcc version.  let's throw everything we can at it...
 DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_PREFIX_PATH=$(GCC_PACKAGE_ROOT)
 DD_BUILD_ENV += LD_LIBRARY_PATH=$(GCC_PACKAGE_ROOT)/lib64:$(GCC_PACKAGE_ROOT)/lib:$(LD_LIBRARY_PATH)
@@ -170,7 +175,7 @@ LLVM_EXTRA_CPPFLAGS += -DLLVM_NDEBUG
 endif
 
 build/bootstrap.o: ../src/bootstrap.cpp BuildBootstrap.Makefile $(LIB_DEPENDENCY) | build
-	@$(call PRINT_CC, $(CXX) $(CXX_ABI_SETTING) -fno-rtti -DLIBRARY_EXPORTS -fPIC -O0 -g $(FLAGS) $(LLVM_EXTRA_CPPFLAGS) -c ../src/bootstrap.cpp -o $@)
+	@$(call PRINT_CC, env $(DD_BUILD_ENV) $(CXX) $(CXX_ABI_SETTING) -fno-rtti -DLIBRARY_EXPORTS -fPIC -O0 -g $(FLAGS) $(LLVM_EXTRA_CPPFLAGS) $(DD_CPPFLAGS) -c ../src/bootstrap.cpp -o $@)
 
 
 LINKED_LIBS = $(addprefix -l,$(CLANG_LIBS))
@@ -180,7 +185,7 @@ endif
 
 ifneq (,$(wildcard $(BASE_JULIA_BIN)/../lib/libjulia.$(SHLIB_EXT)))
 usr/lib/libcxxffi.$(SHLIB_EXT): build/bootstrap.o $(LIB_DEPENDENCY) | usr/lib
-	@$(call PRINT_LINK, $(CXX) -shared -fPIC $(JULIA_LDFLAGS) -ljulia $(LDFLAGS) -o $@ $(WHOLE_ARCHIVE) $(LINKED_LIBS) $(NO_WHOLE_ARCHIVE) $< )
+	@$(call PRINT_LINK, env $(DD_BUILD_ENV) $(CXX) -shared -fPIC $(JULIA_LDFLAGS) -ljulia $(LDFLAGS) $(DD_CPPFLAGS) -o $@ $(WHOLE_ARCHIVE) $(LINKED_LIBS) $(NO_WHOLE_ARCHIVE) $< )
 else
 usr/lib/libcxxffi.$(SHLIB_EXT):
 	@echo "Not building release library because corresponding julia RELEASE library does not exist."
@@ -191,7 +196,7 @@ endif
 
 ifneq (,$(wildcard $(BASE_JULIA_BIN)/../lib/libjulia-debug.$(SHLIB_EXT)))
 usr/lib/libcxxffi-debug.$(SHLIB_EXT): build/bootstrap.o $(LIB_DEPENDENCY) | usr/lib
-	@$(call PRINT_LINK, $(CXX) -shared -fPIC $(JULIA_LDFLAGS) -ljulia-debug $(LDFLAGS) -o $@ $(WHOLE_ARCHIVE) $(LINKED_LIBS) $(NO_WHOLE_ARCHIVE) $< )
+	@$(call PRINT_LINK, env $(DD_BUILD_ENV) $(CXX) -shared -fPIC $(JULIA_LDFLAGS) -ljulia-debug $(LDFLAGS) $(DD_CPPFLAGS) -o $@ $(WHOLE_ARCHIVE) $(LINKED_LIBS) $(NO_WHOLE_ARCHIVE) $< )
 else
 usr/lib/libcxxffi-debug.$(SHLIB_EXT):
 	@echo "Not building debug library because corresponding julia DEBUG library does not exist."
