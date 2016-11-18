@@ -40,4 +40,15 @@ else
     ENV["JULIA_BINARY_BUILD"] = "1"
     ENV["PATH"] = string(JULIA_HOME,":",ENV["PATH"])
 end
+
+# build Cxx for DD
+ENV["CMAKE_VERSION"] = "3.6.2"
+ENV["GCC_VERSION"] = "4.8.5"
+ENV["PYTHON_VERSION"] = "2.7.3"
+CMAKE_PACKAGE_ROOT = string(ENV["DD_TOOLS_ROOT"],"/", ENV["DD_OS"], "/package/cmake/", ENV["CMAKE_VERSION"])
+GCC_PACKAGE_ROOT = string(ENV["DD_TOOLS_ROOT"],"/", ENV["DD_OS"], "/package/gcc/", ENV["GCC_VERSION"])
+PYTHON_PACKAGE_ROOT = string(ENV["DD_TOOLS_ROOT"],"/", ENV["DD_OS"], "/package/python/", ENV["PYTHON_VERSION"])
+# path cmake and python versions.  gcc version will be specified in BuildBootstrap.Makefile cmake command line
+ENV["PATH"] = string( CMAKE_PACKAGE_ROOT,"/bin:", PYTHON_PACKAGE_ROOT,"/bin:",ENV["PATH"])
+
 run(`make -j$(Sys.CPU_CORES) -f BuildBootstrap.Makefile BASE_JULIA_BIN=$BASE_JULIA_BIN BASE_JULIA_SRC=$BASE_JULIA_SRC`)
