@@ -1,6 +1,12 @@
 JULIA_SRC := $(subst \,/,$(BASE_JULIA_SRC))
 JULIA_BIN := $(subst \,/,$(BASE_JULIA_BIN))
 
+# DD: set up correct gcc stuff for cmake
+DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_C_COMPILER=$(GCC_PACKAGE_ROOT)/bin/gcc
+DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_COMPILER=$(GCC_PACKAGE_ROOT)/bin/g++
+DD_PKG_CXX_CMAKE_ARGS += -DGCC_INSTALL_PREFIX=$(GCC_PACKAGE_ROOT)
+DD_PKG_CXX_CMAKE_ARGS += -DCMAKE_CXX_LINK_FLAGS="-L$(GCC_PACKAGE_ROOT)/lib64 -Wl,-rpath,$(GCC_PACKAGE_ROOT)/lib64"
+
 ifeq ($(LLVM_VER),)
 BUILDROOT=$(JULIA_BIN)/../..
 include $(JULIA_SRC)/deps/Versions.make
@@ -76,7 +82,7 @@ src/llvm-$(LLVM_VER): $(LLVM_SRC_TAR)
 build/llvm-$(LLVM_VER)/Makefile: src/llvm-$(LLVM_VER) $(LLVM_PATCH_LIST)
 	mkdir -p $(dir $@)
 	cd $(dir $@) && \
-		cmake -G "Unix Makefiles"  -DLLVM_TARGETS_TO_BUILD="X86" \
+		cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) -DLLVM_TARGETS_TO_BUILD="X86" \
 		 	-DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release \
 			-DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_THREADS=OFF \
 			-DCMAKE_CXX_COMPILER_ARG1="$(CXX_ABI_SETTING)" \
@@ -102,7 +108,7 @@ src/clang-$(LLVM_VER): $(LLVM_CLANG_TAR)
 build/clang-$(LLVM_VER)/Makefile: src/clang-$(LLVM_VER) $(CLANG_CMAKE_DEP)
 	mkdir -p $(dir $@)
 	cd $(dir $@) && \
-		cmake -G "Unix Makefiles" \
+		cmake -G "Unix Makefiles" $(DD_PKG_CXX_CMAKE_ARGS) \
 			-DLLVM_BUILD_LLVM_DYLIB=ON -DCMAKE_BUILD_TYPE=Release \
 			-DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_ENABLE_THREADS=OFF \
                         -DCMAKE_CXX_COMPILER_ARG1="$(CXX_ABI_SETTING)" \
