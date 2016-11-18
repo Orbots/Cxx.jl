@@ -51,4 +51,4 @@ PYTHON_PACKAGE_ROOT = string(ENV["DD_TOOLS_ROOT"],"/", ENV["DD_OS"], "/package/p
 # path cmake and python versions.  gcc version will be specified in BuildBootstrap.Makefile cmake command line
 ENV["PATH"] = string( CMAKE_PACKAGE_ROOT,"/bin:", PYTHON_PACKAGE_ROOT,"/bin:",ENV["PATH"])
 
-run(`make -j$(Sys.CPU_CORES) -f BuildBootstrap.Makefile BASE_JULIA_BIN=$BASE_JULIA_BIN BASE_JULIA_SRC=$BASE_JULIA_SRC`)
+run(`make -j$(Sys.CPU_CORES) -f BuildBootstrap.Makefile BASE_JULIA_BIN=$BASE_JULIA_BIN BASE_JULIA_SRC=$BASE_JULIA_SRC GCC_PACKAGE_ROOT=$GCC_PACKAGE_ROOT`)
